@@ -1,0 +1,47 @@
+
+name: Deploy PoseMate
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract project
+        run: unzip -o posemate.zip -d .
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: posemate
+        run: npm install
+
+      - name: Build website
+        working-directory: posemate
+        run: npm run build -- --base=/Posemate/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: posemate/dist
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
